@@ -1,0 +1,45 @@
+name: Build Windows executable
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:   # permet aussi de le lancer manuellement depuis l'onglet Actions
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaurer les dépendances
+        run: dotnet restore TidalNowPlaying/TidalNowPlaying.csproj
+
+      # --self-contained true embarque le runtime .NET directement dans les
+      # fichiers publiés : pas besoin d'installer quoi que ce soit sur la
+      # machine de destination pour lancer l'exe.
+      - name: Compiler (Release, win-x64, self-contained)
+        run: >
+          dotnet publish TidalNowPlaying/TidalNowPlaying.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishReadyToRun=false
+          -o publish
+
+      - name: Empaqueter en zip
+        run: Compress-Archive -Path publish\* -DestinationPath TidalNowPlaying-win-x64.zip
+        shell: pwsh
+
+      - name: Publier le résultat (téléchargeable depuis cet onglet Actions)
+        uses: actions/upload-artifact@v4
+        with:
+          name: TidalNowPlaying-win-x64
+          path: TidalNowPlaying-win-x64.zip
+          retention-days: 90
