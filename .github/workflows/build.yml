@@ -21,25 +21,25 @@ jobs:
       - name: Restaurer les dépendances
         run: dotnet restore TidalNowPlaying.csproj
 
-      # --self-contained true embarque le runtime .NET directement dans les
-      # fichiers publiés : pas besoin d'installer quoi que ce soit sur la
-      # machine de destination pour lancer l'exe.
-      - name: Compiler (Release, win-x64, self-contained)
+      # --self-contained true + PublishSingleFile regroupe tout (runtime .NET,
+      # dépendances, wwwroot) en un seul .exe autonome. Pas besoin d'installer
+      # quoi que ce soit sur la machine de destination.
+      - name: Compiler (Release, win-x64, fichier unique)
         run: >
           dotnet publish TidalNowPlaying.csproj
           -c Release
           -r win-x64
           --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeAllContentForSelfExtract=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
           -p:PublishReadyToRun=false
+          -p:DebugType=None
           -o publish
-
-      - name: Empaqueter en zip
-        run: Compress-Archive -Path publish\* -DestinationPath TidalNowPlaying-win-x64.zip
-        shell: pwsh
 
       - name: Publier le résultat (téléchargeable depuis cet onglet Actions)
         uses: actions/upload-artifact@v4
         with:
-          name: TidalNowPlaying-win-x64
-          path: TidalNowPlaying-win-x64.zip
+          name: TidalNowPlaying
+          path: publish/TidalNowPlaying.exe
           retention-days: 90

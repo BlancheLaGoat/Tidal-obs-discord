@@ -7,7 +7,7 @@ namespace TidalNowPlaying;
 public static class Logger
 {
     private static readonly object Lock = new();
-    private static readonly string LogPath = Path.Combine(AppContext.BaseDirectory, "log.txt");
+    private static readonly string LogPath = AppPaths.LogPath;
 
     public static void Log(string message)
     {

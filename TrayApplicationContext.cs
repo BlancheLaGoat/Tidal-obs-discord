@@ -17,7 +17,7 @@ public class TrayApplicationContext : ApplicationContext
     public TrayApplicationContext()
     {
         var baseDir = AppContext.BaseDirectory;
-        _configPath = Path.Combine(baseDir, "config.json");
+        _configPath = AppPaths.ConfigPath;
         _config = AppConfig.Load(_configPath);
 
         _mediaWatcher = new MediaWatcher(_config.PollIntervalMs);
