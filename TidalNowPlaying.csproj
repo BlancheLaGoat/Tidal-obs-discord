@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>TidalNowPlaying</RootNamespace>
+    <AssemblyName>TidalNowPlaying</AssemblyName>
+    <ApplicationVisualStyles>true</ApplicationVisualStyles>
+    <ApplicationUseCompatibleTextRendering>false</ApplicationUseCompatibleTextRendering>
+    <StartupObject>TidalNowPlaying.Program</StartupObject>
+    <!-- On veut pouvoir utiliser les API WinRT (Windows.Media.Control) -->
+    <CsWinRTIncludes>Windows.Media.Control</CsWinRTIncludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DiscordRichPresence" Version="1.2.1.24" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="wwwroot\index.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
