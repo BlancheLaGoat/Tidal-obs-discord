@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:   # permet aussi de le lancer manuellement depuis l'onglet Actions
 
+permissions:
+  contents: write   # nécessaire pour pouvoir créer/mettre à jour une Release
+
 jobs:
   build:
     runs-on: windows-latest
@@ -43,3 +46,15 @@ jobs:
           name: TidalNowPlaying
           path: publish/TidalNowPlaying.exe
           retention-days: 90
+
+      # Crée (ou met à jour) une Release nommée "latest" avec l'exe attaché,
+      # visible directement dans l'onglet "Releases" du dépôt.
+      - name: Publier/mettre à jour la Release "latest"
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Dernière version
+          body: Build automatique le plus récent (généré depuis le dernier commit sur main).
+          prerelease: true
+          files: publish/TidalNowPlaying.exe
+
