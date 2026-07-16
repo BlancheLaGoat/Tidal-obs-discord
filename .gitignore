@@ -1,0 +1,13 @@
+# Dossiers de build .NET / Visual Studio
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Logs générés par l'appli (contiennent des infos de session, pas à publier)
+log.txt
+
+# Fichiers système
+.DS_Store
+Thumbs.db

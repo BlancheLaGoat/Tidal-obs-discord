@@ -1,8 +1,0 @@
-{
-  "discordClientId": "1527438639607316753",
-  "imgbbApiKey": "8959212c4a00cfae132067a6e29d9ff1",
-  "httpPort": 5177,
-  "enableDiscordRichPresence": true,
-  "enableWidgetServer": true,
-  "pollIntervalMs": 1500
-}
