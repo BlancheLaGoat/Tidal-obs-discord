@@ -38,12 +38,12 @@ public class MediaWatcher : IDisposable
         {
             if (_manager == null) return;
 
-            var session = FindTidalSessionInstance(_manager);
+            var session = FindBestSession(_manager);
 
             if (session == null && _currentSession != null)
-                Logger.Log("MediaWatcher: session Tidal perdue (app fermée ou changement de lecteur).");
+                Logger.Log("MediaWatcher: session perdue (app/onglet fermé ou lecture arrêtée).");
             else if (session != null && _currentSession == null)
-                Logger.Log("MediaWatcher: session Tidal détectée.");
+                Logger.Log($"MediaWatcher: session détectée -> {session.SourceAppUserModelId}");
 
             _currentSession = session;
 
@@ -114,29 +114,52 @@ public class MediaWatcher : IDisposable
 
     private bool _loggedSessionList;
 
-    private GlobalSystemMediaTransportControlsSession? FindTidalSessionInstance(GlobalSystemMediaTransportControlsSessionManager manager)
+    private GlobalSystemMediaTransportControlsSession? FindBestSession(GlobalSystemMediaTransportControlsSessionManager manager)
     {
         var sessions = manager.GetSessions();
         var aumids = new List<string>();
-        GlobalSystemMediaTransportControlsSession? found = null;
+
+        GlobalSystemMediaTransportControlsSession? tidalSession = null;
+        GlobalSystemMediaTransportControlsSession? playingFallback = null;
+        GlobalSystemMediaTransportControlsSession? anyFallback = null;
 
         foreach (var session in sessions)
         {
             var aumid = session.SourceAppUserModelId ?? "";
             aumids.Add(aumid);
-            if (found == null && aumid.Contains("tidal", StringComparison.OrdinalIgnoreCase))
-                found = session;
+
+            if (tidalSession == null && aumid.Contains("tidal", StringComparison.OrdinalIgnoreCase))
+            {
+                tidalSession = session;
+                continue;
+            }
+
+            anyFallback ??= session;
+
+            try
+            {
+                var status = session.GetPlaybackInfo().PlaybackStatus;
+                if (playingFallback == null && status == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                    playingFallback = session;
+            }
+            catch
+            {
+                // la session a pu disparaître entre l'énumération et cet appel, on l'ignore simplement
+            }
         }
 
         if (!_loggedSessionList)
         {
             _loggedSessionList = true;
             Logger.Log(aumids.Count == 0
-                ? "MediaWatcher: aucune session multimédia active trouvée par Windows (lance un morceau sur Tidal)."
+                ? "MediaWatcher: aucune session multimédia active trouvée par Windows."
                 : $"MediaWatcher: sessions multimédia détectées -> {string.Join(", ", aumids)}");
         }
 
-        return found;
+        // Priorité : l'appli Tidal desktop (la plus fiable et la plus précise), sinon
+        // n'importe quelle lecture active ailleurs (ex. Tidal ou YouTube dans un
+        // navigateur), sinon la première session disponible même si elle est en pause.
+        return tidalSession ?? playingFallback ?? anyFallback;
     }
 
     private static async Task<byte[]?> TryReadThumbnailAsync(IRandomAccessStreamReference? thumbnailRef)
