@@ -38,7 +38,7 @@ public class MediaWatcher : IDisposable
         {
             if (_manager == null) return;
 
-            var session = FindBestSession(_manager);
+            var session = FindBestSession(_manager, out var isDesktop);
 
             if (session == null && _currentSession != null)
                 Logger.Log("MediaWatcher: session perdue (app/onglet fermé ou lecture arrêtée).");
@@ -87,6 +87,7 @@ public class MediaWatcher : IDisposable
                 IsPlaying = isPlaying,
                 PositionSeconds = position,
                 DurationSeconds = duration,
+                IsDesktopSource = isDesktop,
                 CapturedAtUtc = DateTime.UtcNow
             };
 
@@ -114,7 +115,7 @@ public class MediaWatcher : IDisposable
 
     private bool _loggedSessionList;
 
-    private GlobalSystemMediaTransportControlsSession? FindBestSession(GlobalSystemMediaTransportControlsSessionManager manager)
+    private GlobalSystemMediaTransportControlsSession? FindBestSession(GlobalSystemMediaTransportControlsSessionManager manager, out bool isDesktop)
     {
         var sessions = manager.GetSessions();
         var aumids = new List<string>();
@@ -159,7 +160,14 @@ public class MediaWatcher : IDisposable
         // Priorité : l'appli Tidal desktop (la plus fiable et la plus précise), sinon
         // n'importe quelle lecture active ailleurs (ex. Tidal ou YouTube dans un
         // navigateur), sinon la première session disponible même si elle est en pause.
-        return tidalSession ?? playingFallback ?? anyFallback;
+        if (tidalSession != null)
+        {
+            isDesktop = true;
+            return tidalSession;
+        }
+
+        isDesktop = false;
+        return playingFallback ?? anyFallback;
     }
 
     private static async Task<byte[]?> TryReadThumbnailAsync(IRandomAccessStreamReference? thumbnailRef)

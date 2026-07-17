@@ -13,6 +13,10 @@ public class TrackInfo
     public double DurationSeconds { get; set; }
     public bool HasArt { get; set; }
 
+    // true si la session vient de l'appli Tidal desktop, false si elle vient d'un
+    // navigateur ou d'une autre source détectée en fallback (voir MediaWatcher).
+    public bool IsDesktopSource { get; set; } = true;
+
     // Instant (UTC) auquel PositionSeconds a été mesuré. Sert à extrapoler la
     // position en temps réel côté widget, car Windows ne renvoie pas toujours
     // une position parfaitement à jour à chaque appel.
@@ -37,6 +41,9 @@ public class AppConfig
 
     [JsonPropertyName("enableDiscordRichPresence")]
     public bool EnableDiscordRichPresence { get; set; } = true;
+
+    [JsonPropertyName("discordDesktopOnly")]
+    public bool DiscordDesktopOnly { get; set; } = true;
 
     [JsonPropertyName("enableWidgetServer")]
     public bool EnableWidgetServer { get; set; } = true;

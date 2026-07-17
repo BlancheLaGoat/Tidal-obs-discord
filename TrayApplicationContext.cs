@@ -97,7 +97,8 @@ public class TrayApplicationContext : ApplicationContext
             ? Truncate($"{info.Artist} - {info.Title}", 63)
             : "Tidal Now Playing";
 
-        _discord.UpdateTrack(info, art);
+        var infoForDiscord = (_config.DiscordDesktopOnly && !info.IsDesktopSource) ? new TrackInfo() : info;
+        _discord.UpdateTrack(infoForDiscord, art);
         _widgetServer?.UpdateTrack(info, art);
     }
 
