@@ -75,10 +75,16 @@ public class DiscordPresenceManager : IDisposable
             return;
         }
 
-        if (!info.HasTrack)
+        if (!info.HasTrack || !info.IsPlaying)
         {
-            _client.ClearPresence();
-            _lastTrackKey = "";
+            if (_lastTrackKey != "")
+            {
+                _client.ClearPresence();
+                Logger.Log(info.HasTrack
+                    ? "Discord: présence vidée (lecture en pause)."
+                    : "Discord: présence vidée (plus de session Tidal).");
+                _lastTrackKey = "";
+            }
             return;
         }
 
