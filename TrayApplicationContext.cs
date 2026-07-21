@@ -8,6 +8,7 @@ public class TrayApplicationContext : ApplicationContext
     private readonly MediaWatcher _mediaWatcher;
     private readonly DiscordPresenceManager _discord;
     private readonly WidgetServer? _widgetServer;
+    private readonly IdleGate _idleGate;
     private readonly AppConfig _config;
     private readonly string _configPath;
     private readonly ToolStripMenuItem _statusItem;
@@ -22,6 +23,7 @@ public class TrayApplicationContext : ApplicationContext
 
         _mediaWatcher = new MediaWatcher(_config.PollIntervalMs);
         _discord = new DiscordPresenceManager(_config.DiscordClientId, _config.ImgbbApiKey, _config.EnableDiscordRichPresence);
+        _idleGate = new IdleGate { TimeoutSeconds = _config.IdleTimeoutSeconds };
 
         if (_config.EnableWidgetServer)
         {
@@ -97,9 +99,11 @@ public class TrayApplicationContext : ApplicationContext
             ? Truncate($"{info.Artist} - {info.Title}", 63)
             : "Tidal Now Playing";
 
-        var infoForDiscord = (_config.DiscordDesktopOnly && !info.IsDesktopSource) ? new TrackInfo() : info;
+        var gatedInfo = _idleGate.Apply(info);
+
+        var infoForDiscord = (_config.DiscordDesktopOnly && !gatedInfo.IsDesktopSource) ? new TrackInfo() : gatedInfo;
         _discord.UpdateTrack(infoForDiscord, art);
-        _widgetServer?.UpdateTrack(info, art);
+        _widgetServer?.UpdateTrack(gatedInfo, art);
     }
 
     private void OnToggleDiscord(object? sender, EventArgs e)

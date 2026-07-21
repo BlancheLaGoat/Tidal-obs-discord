@@ -51,6 +51,9 @@ public class AppConfig
     [JsonPropertyName("pollIntervalMs")]
     public int PollIntervalMs { get; set; } = 1500;
 
+    [JsonPropertyName("idleTimeoutSeconds")]
+    public int IdleTimeoutSeconds { get; set; } = 60;
+
     public static AppConfig Load(string path)
     {
         try

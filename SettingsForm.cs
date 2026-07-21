@@ -12,6 +12,7 @@ public class SettingsForm : Form
     private readonly TextBox _imgbbApiKeyBox = new() { Dock = DockStyle.Fill };
     private readonly NumericUpDown _portBox = new() { Dock = DockStyle.Fill, Minimum = 1024, Maximum = 65535 };
     private readonly NumericUpDown _pollIntervalBox = new() { Dock = DockStyle.Fill, Minimum = 500, Maximum = 10000, Increment = 500 };
+    private readonly NumericUpDown _idleTimeoutBox = new() { Dock = DockStyle.Fill, Minimum = 0, Maximum = 3600, Increment = 10 };
     private readonly CheckBox _enableDiscordBox = new() { Text = "Activer le statut Discord", AutoSize = true };
     private readonly CheckBox _discordDesktopOnlyBox = new() { Text = "Discord uniquement depuis Tidal desktop (ignore navigateur/YouTube)", AutoSize = true };
     private readonly CheckBox _enableWidgetBox = new() { Text = "Activer le widget OBS", AutoSize = true };
@@ -22,7 +23,7 @@ public class SettingsForm : Form
 
         Text = "Réglages - Tidal Now Playing";
         Width = 460;
-        Height = 410;
+        Height = 440;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -33,6 +34,7 @@ public class SettingsForm : Form
         _imgbbApiKeyBox.Text = current.ImgbbApiKey;
         _portBox.Value = Math.Clamp(current.HttpPort, 1024, 65535);
         _pollIntervalBox.Value = Math.Clamp(current.PollIntervalMs, 500, 10000);
+        _idleTimeoutBox.Value = Math.Clamp(current.IdleTimeoutSeconds, 0, 3600);
         _enableDiscordBox.Checked = current.EnableDiscordRichPresence;
         _discordDesktopOnlyBox.Checked = current.DiscordDesktopOnly;
         _enableWidgetBox.Checked = current.EnableWidgetServer;
@@ -42,7 +44,7 @@ public class SettingsForm : Form
             Dock = DockStyle.Fill,
             Padding = new Padding(16),
             ColumnCount = 2,
-            RowCount = 9,
+            RowCount = 10,
             AutoSize = true
         };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
@@ -60,9 +62,12 @@ public class SettingsForm : Form
         layout.Controls.Add(new Label { Text = "Intervalle de rafraîchissement (ms) :", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 3);
         layout.Controls.Add(_pollIntervalBox, 1, 3);
 
-        layout.Controls.Add(_enableDiscordBox, 1, 4);
-        layout.Controls.Add(_discordDesktopOnlyBox, 1, 5);
-        layout.Controls.Add(_enableWidgetBox, 1, 6);
+        layout.Controls.Add(new Label { Text = "Délai avant désactivation (s, 0 = jamais) :", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 4);
+        layout.Controls.Add(_idleTimeoutBox, 1, 4);
+
+        layout.Controls.Add(_enableDiscordBox, 1, 5);
+        layout.Controls.Add(_discordDesktopOnlyBox, 1, 6);
+        layout.Controls.Add(_enableWidgetBox, 1, 7);
 
         var helpLabel = new Label
         {
@@ -71,7 +76,7 @@ public class SettingsForm : Form
             ForeColor = SystemColors.GrayText,
             Margin = new Padding(0, 8, 0, 8)
         };
-        layout.Controls.Add(helpLabel, 1, 7);
+        layout.Controls.Add(helpLabel, 1, 8);
 
         var buttonPanel = new FlowLayoutPanel
         {
@@ -100,6 +105,7 @@ public class SettingsForm : Form
             ImgbbApiKey = _imgbbApiKeyBox.Text.Trim(),
             HttpPort = (int)_portBox.Value,
             PollIntervalMs = (int)_pollIntervalBox.Value,
+            IdleTimeoutSeconds = (int)_idleTimeoutBox.Value,
             EnableDiscordRichPresence = _enableDiscordBox.Checked,
             DiscordDesktopOnly = _discordDesktopOnlyBox.Checked,
             EnableWidgetServer = _enableWidgetBox.Checked
