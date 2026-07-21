@@ -1,3 +1,4 @@
+using System.Linq;
 using Windows.Media.Control;
 using Windows.Storage.Streams;
 
@@ -115,12 +116,17 @@ public class MediaWatcher : IDisposable
 
     private bool _loggedSessionList;
 
+    // Identifiants système (AppUserModelId) des applis desktop reconnues comme
+    // sources fiables - au même niveau de priorité que Tidal. Facile d'en
+    // ajouter d'autres ici si besoin plus tard.
+    private static readonly string[] KnownDesktopAppMarkers = { "tidal", "apple" }; // "apple" couvre AppleInc.iTunes (Apple Music sur Windows)
+
     private GlobalSystemMediaTransportControlsSession? FindBestSession(GlobalSystemMediaTransportControlsSessionManager manager, out bool isDesktop)
     {
         var sessions = manager.GetSessions();
         var aumids = new List<string>();
 
-        GlobalSystemMediaTransportControlsSession? tidalSession = null;
+        GlobalSystemMediaTransportControlsSession? knownAppSession = null;
         GlobalSystemMediaTransportControlsSession? playingFallback = null;
         GlobalSystemMediaTransportControlsSession? anyFallback = null;
 
@@ -129,9 +135,9 @@ public class MediaWatcher : IDisposable
             var aumid = session.SourceAppUserModelId ?? "";
             aumids.Add(aumid);
 
-            if (tidalSession == null && aumid.Contains("tidal", StringComparison.OrdinalIgnoreCase))
+            if (knownAppSession == null && KnownDesktopAppMarkers.Any(marker => aumid.Contains(marker, StringComparison.OrdinalIgnoreCase)))
             {
-                tidalSession = session;
+                knownAppSession = session;
                 continue;
             }
 
@@ -157,13 +163,13 @@ public class MediaWatcher : IDisposable
                 : $"MediaWatcher: sessions multimédia détectées -> {string.Join(", ", aumids)}");
         }
 
-        // Priorité : l'appli Tidal desktop (la plus fiable et la plus précise), sinon
-        // n'importe quelle lecture active ailleurs (ex. Tidal ou YouTube dans un
-        // navigateur), sinon la première session disponible même si elle est en pause.
-        if (tidalSession != null)
+        // Priorité : une appli desktop reconnue (Tidal, Apple Music), sinon n'importe
+        // quelle lecture active ailleurs (ex. navigateur), sinon la première session
+        // disponible même si elle est en pause.
+        if (knownAppSession != null)
         {
             isDesktop = true;
-            return tidalSession;
+            return knownAppSession;
         }
 
         isDesktop = false;
