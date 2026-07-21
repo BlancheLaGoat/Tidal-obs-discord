@@ -148,9 +148,10 @@ public class DiscordPresenceManager : IDisposable
 
         if (info.IsPlaying && info.DurationSeconds > 0)
         {
+            // Ne définir que "End" (sans "Start") fait afficher un décompte par
+            // Discord (ex. "-2:45" qui descend vers zéro), au lieu du temps écoulé.
             presence.Timestamps = new Timestamps
             {
-                Start = _trackStartedAt,
                 End = _trackStartedAt.AddSeconds(info.DurationSeconds)
             };
         }

@@ -79,6 +79,14 @@
     background: linear-gradient(90deg, #00ffe0, #00c2ff);
   }
 
+  #time-remaining {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #b9b9c3;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
   #eq {
     display: flex;
     align-items: flex-end;
@@ -119,6 +127,7 @@
     <div id="title">—</div>
     <div id="artist">—</div>
     <div id="progress-track"><div id="progress-bar"></div></div>
+    <div id="time-remaining">-0:00</div>
   </div>
   <div id="eq"><span></span><span></span><span></span><span></span></div>
 </div>
@@ -129,6 +138,7 @@
   const titleEl = document.getElementById('title');
   const artistEl = document.getElementById('artist');
   const progressBar = document.getElementById('progress-bar');
+  const timeRemainingEl = document.getElementById('time-remaining');
 
   let lastKey = '';
   let serverPosition = 0;
@@ -170,6 +180,13 @@
     setTimeout(poll, 1000);
   }
 
+  function formatTime(totalSeconds) {
+    const s = Math.max(0, Math.round(totalSeconds));
+    const minutes = Math.floor(s / 60);
+    const seconds = s % 60;
+    return minutes + ':' + String(seconds).padStart(2, '0');
+  }
+
   function renderProgress() {
     if (serverDuration > 0) {
       let position = serverPosition;
@@ -179,8 +196,10 @@
       position = Math.min(position, serverDuration);
       const pct = Math.min(100, (position / serverDuration) * 100);
       progressBar.style.width = pct + '%';
+      timeRemainingEl.textContent = '-' + formatTime(serverDuration - position);
     } else {
       progressBar.style.width = '0%';
+      timeRemainingEl.textContent = '';
     }
     requestAnimationFrame(renderProgress);
   }
